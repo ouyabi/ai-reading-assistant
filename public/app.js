@@ -8,6 +8,165 @@ const signupBtn = document.querySelector('.signup-btn');
 const userMenu = document.querySelector('.user-menu');
 const userProfile = document.querySelector('.user-profile');
 
+// 检查登录状态并显示登录模态框
+function checkAuthAndShowLogin() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+        showLoginModal();
+    }
+}
+
+// 显示登录模态框
+function showLoginModal() {
+    const modalHtml = `
+        <div class="auth-modal">
+            <div class="auth-form">
+                <h2>登录</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">邮箱</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">密码</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit">登录</button>
+                    <p class="auth-switch">还没有账号？<a href="#" id="switch-to-signup">立即注册</a></p>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    const modal = document.querySelector('.auth-modal');
+    const switchToSignup = document.getElementById('switch-to-signup');
+    
+    // 切换到注册界面
+    switchToSignup.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.remove();
+        showSignupModal();
+    });
+
+    // 处理登录表单提交
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+}
+
+// 显示注册模态框
+function showSignupModal() {
+    const modalHtml = `
+        <div class="auth-modal">
+            <div class="auth-form">
+                <h2>注册</h2>
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label for="signup-username">用户名</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">邮箱</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">密码</label>
+                        <input type="password" id="signup-password" required>
+                    </div>
+                    <button type="submit">注册</button>
+                    <p class="auth-switch">已有账号？<a href="#" id="switch-to-login">立即登录</a></p>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    const modal = document.querySelector('.auth-modal');
+    const switchToLogin = document.getElementById('switch-to-login');
+    
+    // 切换到登录界面
+    switchToLogin.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.remove();
+        showLoginModal();
+    });
+
+    // 处理注册表单提交
+    document.getElementById('signup-form').addEventListener('submit', handleSignup);
+}
+
+// 处理登录
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.email === email && u.password === password);
+        
+        if (!user) {
+            throw new Error('邮箱或密码错误');
+        }
+
+        // 保存登录状态
+        const userData = {
+            email: user.email,
+            username: user.username,
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
+            readingTime: 0
+        };
+        
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        document.querySelector('.auth-modal').remove();
+        updateUserInterface(userData);
+        location.reload(); // 刷新页面以更新所有状态
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+// 处理注册
+async function handleSignup(e) {
+    e.preventDefault();
+    const username = document.getElementById('signup-username').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+
+    try {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        if (users.some(u => u.email === email)) {
+            throw new Error('该邮箱已被注册');
+        }
+
+        // 创建新用户
+        const newUser = {
+            username,
+            email,
+            password,
+            registerDate: new Date().toISOString(),
+            readingTime: 0
+        };
+        
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+
+        // 自动登录
+        const userData = {
+            email: newUser.email,
+            username: newUser.username,
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${newUser.username}`,
+            readingTime: 0
+        };
+        
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        document.querySelector('.auth-modal').remove();
+        updateUserInterface(userData);
+        location.reload(); // 刷新页面以更新所有状态
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
 // 更新用户界面
 function updateUserInterface(user) {
     if (user) {
@@ -114,6 +273,7 @@ function startReadingTimeTracking(user) {
 
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', () => {
+    checkAuthAndShowLogin();
     initializeUserState();
 });
 
@@ -486,6 +646,7 @@ window.addEventListener('storage', (e) => {
 
 // 页面加载完成后初始化所有功能
 document.addEventListener('DOMContentLoaded', () => {
+    checkAuthAndShowLogin();
     initNavigation();
     initMobileMenu();
     initCtaButton();

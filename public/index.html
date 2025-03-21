@@ -9,7 +9,7 @@
     <!-- 添加字体图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
+<body class="dark-theme">
     <!-- 移动端菜单按钮 -->
     <button id="menu-toggle" class="menu-toggle" aria-label="切换菜单">
         <i class="fas fa-bars"></i>
@@ -66,7 +66,7 @@
     </aside>
 
     <main>
-        <section id="home" class="section active fade-in">
+        <section id="home" class="section active">
             <div class="welcome-banner">
                 <h1>欢迎来到AI伴读</h1>
                 <p>让AI成为你的专属阅读助手，提升阅读效率与理解深度</p>
@@ -139,19 +139,16 @@
         </section>
 
         <section id="ai-assistant" class="section">
-            <header class="section-header">
-                <h1>AI助手</h1>
-            </header>
-
             <div class="chat-container">
                 <div class="chat-messages">
                     <div class="message ai">
                         <div class="message-content">
-                            <p>你好！我是你的AI阅读助手。我可以帮你：</p>
+                            <p>你好！我是基于Deepseek R1模型的AI阅读助手。我可以帮你：</p>
                             <ul>
-                                <li>分析文章重点</li>
-                                <li>回答阅读问题</li>
-                                <li>生成阅读笔记</li>
+                                <li>分析文章重点和主旨</li>
+                                <li>回答阅读相关问题</li>
+                                <li>生成阅读笔记和总结</li>
+                                <li>提供多角度的文本解读</li>
                             </ul>
                         </div>
                     </div>
@@ -241,6 +238,7 @@
 
     <!-- 加载脚本 -->
     <script src="auth.js"></script>
+    <script src="ai-service.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

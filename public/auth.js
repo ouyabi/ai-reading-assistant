@@ -123,132 +123,169 @@ function validateForm(formId) {
     return isValid;
 }
 
-// 用户数据管理
-const UserManager = {
-    // 获取所有用户
-    getUsers() {
-        const users = localStorage.getItem('users');
-        return users ? JSON.parse(users) : [];
-    },
+// 用户认证状态管理
+let currentUser = null;
 
-    // 保存用户
-    saveUser(userData) {
-        const users = this.getUsers();
-        // 检查邮箱是否已存在
-        if (users.some(user => user.email === userData.email)) {
-            throw new Error('该邮箱已被注册');
-        }
-        // 添加注册时间和默认头像
-        userData.registerDate = new Date().toISOString();
-        userData.avatar = document.getElementById('avatarPreview')?.src || 
-                         `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.username}`;
-        userData.readingTime = 0;
-        userData.notes = [];
-        
-        users.push(userData);
-        localStorage.setItem('users', JSON.stringify(users));
-        return userData;
-    },
+// 用户数据模拟存储
+const users = new Map();
 
-    // 验证用户
-    validateUser(email, password) {
-        const users = this.getUsers();
-        const user = users.find(u => u.email === email && u.password === password);
-        if (!user) {
+// 初始化认证系统
+function initAuth() {
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+        currentUser = JSON.parse(storedUser);
+        updateUIForAuthenticatedUser();
+    }
+
+    // 添加登录按钮事件监听
+    document.querySelector('.login-btn').addEventListener('click', showLoginModal);
+    document.querySelector('.signup-btn').addEventListener('click', showSignupModal);
+}
+
+// 显示登录模态框
+function showLoginModal() {
+    const modalHtml = `
+        <div class="auth-modal">
+            <div class="auth-form">
+                <h2>登录</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">邮箱</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">密码</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit">登录</button>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    const modal = document.querySelector('.auth-modal');
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+}
+
+// 显示注册模态框
+function showSignupModal() {
+    const modalHtml = `
+        <div class="auth-modal">
+            <div class="auth-form">
+                <h2>注册</h2>
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label for="signup-username">用户名</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">邮箱</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">密码</label>
+                        <input type="password" id="signup-password" required>
+                    </div>
+                    <button type="submit">注册</button>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    const modal = document.querySelector('.auth-modal');
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+
+    document.getElementById('signup-form').addEventListener('submit', handleSignup);
+}
+
+// 处理登录表单提交
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+        const user = users.get(email);
+        if (!user || user.password !== password) {
             throw new Error('邮箱或密码错误');
         }
-        return user;
-    },
 
-    // 获取当前登录用户
-    getCurrentUser() {
-        const userJson = localStorage.getItem('currentUser');
-        return userJson ? JSON.parse(userJson) : null;
-    },
-
-    // 设置当前登录用户
-    setCurrentUser(user) {
-        if (user) {
-            // 存储用户信息时删除敏感信息
-            const { password, ...safeUser } = user;
-            localStorage.setItem('currentUser', JSON.stringify(safeUser));
-        } else {
-            localStorage.removeItem('currentUser');
-        }
-    },
-
-    // 更新用户信息
-    updateUser(email, updates) {
-        const users = this.getUsers();
-        const userIndex = users.findIndex(u => u.email === email);
-        if (userIndex >= 0) {
-            users[userIndex] = { ...users[userIndex], ...updates };
-            localStorage.setItem('users', JSON.stringify(users));
-            
-            // 如果更新的是当前用户，同时更新currentUser
-            const currentUser = this.getCurrentUser();
-            if (currentUser && currentUser.email === email) {
-                this.setCurrentUser(users[userIndex]);
-            }
-        }
-    }
-};
-
-// 模拟API调用
-async function mockApiCall(endpoint, data) {
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    try {
-        switch (endpoint) {
-            case 'login':
-                const user = UserManager.validateUser(data.email, data.password);
-                return {
-                    success: true,
-                    message: '登录成功',
-                    user: user
-                };
-            case 'register':
-                const newUser = UserManager.saveUser(data);
-                return {
-                    success: true,
-                    message: '注册成功',
-                    user: newUser
-                };
-            default:
-                throw new Error('未知的操作');
-        }
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message
+        currentUser = {
+            email: user.email,
+            username: user.username
         };
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        updateUIForAuthenticatedUser();
+        document.querySelector('.auth-modal').remove();
+    } catch (error) {
+        alert(error.message);
     }
 }
 
-// 登录表单处理
-function handleLogin(e) {
+// 处理注册表单提交
+async function handleSignup(e) {
     e.preventDefault();
-    if (!validateForm('loginForm')) return;
+    const username = document.getElementById('signup-username').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
 
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-    
-    // 这里添加登录逻辑
-    console.log('登录数据:', data);
+    try {
+        if (users.has(email)) {
+            throw new Error('该邮箱已被注册');
+        }
+
+        users.set(email, {
+            username,
+            email,
+            password
+        });
+
+        currentUser = {
+            email,
+            username
+        };
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        updateUIForAuthenticatedUser();
+        document.querySelector('.auth-modal').remove();
+    } catch (error) {
+        alert(error.message);
+    }
 }
 
-// 注册表单处理
-function handleRegister(e) {
-    e.preventDefault();
-    if (!validateForm('registerForm')) return;
+// 更新UI显示已登录用户信息
+function updateUIForAuthenticatedUser() {
+    const userMenu = document.querySelector('.user-menu');
+    userMenu.innerHTML = `
+        <span class="user-welcome">欢迎，${currentUser.username}</span>
+        <button class="logout-btn" onclick="handleLogout()">
+            <i class="fas fa-sign-out-alt"></i> 退出
+        </button>
+    `;
 
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-    
-    // 这里添加注册逻辑
-    console.log('注册数据:', data);
+    // 更新侧边栏用户信息
+    const userInfo = document.querySelector('.user-info');
+    if (userInfo) {
+        userInfo.querySelector('.username').textContent = currentUser.username;
+    }
 }
+
+// 处理退出登录
+function handleLogout() {
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    location.reload();
+}
+
+// 页面加载完成后初始化认证系统
+document.addEventListener('DOMContentLoaded', initAuth);
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {

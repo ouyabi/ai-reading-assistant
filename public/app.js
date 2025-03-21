@@ -148,6 +148,14 @@ function handleAvatarUpload(input, previewId) {
             preview.src = e.target.result;
             // 保存头像到localStorage
             localStorage.setItem('userAvatar', e.target.result);
+            
+            // 更新当前用户的头像
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser) {
+                currentUser.avatar = e.target.result;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateUserInterface(currentUser);
+            }
         }
         
         reader.readAsDataURL(input.files[0]);
@@ -262,6 +270,25 @@ async function handleSignup(e) {
 
 // 更新用户界面
 function updateUserInterface(userData) {
+    if (!userData) {
+        // 未登录状态
+        const userMenu = document.querySelector('.user-menu');
+        if (userMenu) {
+            userMenu.innerHTML = `
+                <button class="login-btn"><i class="fas fa-user"></i> 登录</button>
+                <button class="signup-btn"><i class="fas fa-user-plus"></i> 注册</button>
+            `;
+            
+            // 重新绑定登录注册按钮事件
+            const loginBtn = userMenu.querySelector('.login-btn');
+            const signupBtn = userMenu.querySelector('.signup-btn');
+            
+            loginBtn?.addEventListener('click', showLoginModal);
+            signupBtn?.addEventListener('click', showSignupModal);
+        }
+        return;
+    }
+
     // 更新头像
     const avatars = document.querySelectorAll('.avatar');
     avatars.forEach(avatar => {

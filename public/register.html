@@ -4,84 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册 - AI伴读</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <a href="./index.html" class="logo">
-                    <i class="fas fa-book-reader"></i>
-                    <span>AI伴读</span>
-                </a>
-                <h1>创建账号</h1>
+        <div class="auth-header">
+            <h1>创建账号</h1>
+            <p>加入AI伴读，开启智能阅读之旅</p>
+        </div>
+
+        <form class="auth-form" id="registerForm">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" name="username" required>
+                <i class="fas fa-user"></i>
+                <div class="error-message">用户名不能为空</div>
             </div>
 
-            <div class="avatar-upload">
-                <div class="avatar-preview">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="默认头像" id="avatarPreview">
-                </div>
-                <div class="avatar-actions">
-                    <button type="button" class="avatar-button" id="uploadAvatar">
-                        <i class="fas fa-upload"></i> 上传头像
-                    </button>
-                    <button type="button" class="avatar-button" id="randomAvatar">
-                        <i class="fas fa-random"></i> 随机头像
-                    </button>
-                </div>
+            <div class="form-group">
+                <label for="email">邮箱地址</label>
+                <input type="email" id="email" name="email" required>
+                <i class="fas fa-envelope"></i>
+                <div class="error-message">请输入有效的邮箱地址</div>
             </div>
 
-            <form class="auth-form" id="registerForm">
-                <div class="form-group">
-                    <label for="username">
-                        <i class="fas fa-user"></i> 用户名
-                    </label>
-                    <input type="text" id="username" name="username" required placeholder="请输入用户名">
-                </div>
-
-                <div class="form-group">
-                    <label for="email">
-                        <i class="fas fa-envelope"></i> 邮箱地址
-                    </label>
-                    <input type="email" id="email" name="email" required placeholder="请输入邮箱地址">
-                </div>
-
-                <div class="form-group">
-                    <label for="password">
-                        <i class="fas fa-lock"></i> 密码
-                    </label>
-                    <input type="password" id="password" name="password" required placeholder="请输入密码">
-                    <div class="password-strength"></div>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirmPassword">
-                        <i class="fas fa-lock"></i> 确认密码
-                    </label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="请再次输入密码">
-                </div>
-
-                <div class="form-agreement">
-                    <label>
-                        <input type="checkbox" required name="agreement">
-                        <span>我已阅读并同意 <a href="./terms.html">服务条款</a> 和 <a href="./privacy.html">隐私政策</a></span>
-                    </label>
-                </div>
-
-                <button type="submit" class="auth-button">
-                    <i class="fas fa-user-plus"></i>
-                    注册
-                </button>
-            </form>
-
-            <div class="auth-footer">
-                <p>已有账号？ <a href="login.html">立即登录</a></p>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" required>
+                <i class="fas fa-lock"></i>
+                <div class="error-message">密码长度至少6位</div>
             </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">确认密码</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                <i class="fas fa-lock"></i>
+                <div class="error-message">两次输入的密码不一致</div>
+            </div>
+
+            <button type="submit" class="auth-button">
+                注册
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>或</span>
+        </div>
+
+        <div class="social-login">
+            <button class="social-button">
+                <i class="fab fa-weixin"></i>
+            </button>
+            <button class="social-button">
+                <i class="fab fa-qq"></i>
+            </button>
+            <button class="social-button">
+                <i class="fab fa-weibo"></i>
+            </button>
+        </div>
+
+        <div class="auth-links">
+            <a href="login.html">已有账号？立即登录</a>
         </div>
     </div>
 
-    <script src="auth.js" defer></script>
+    <script src="auth.js"></script>
 </body>
 </html> 

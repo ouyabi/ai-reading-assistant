@@ -1,46 +1,61 @@
-.auth-container {
+/* 登录和注册页面的全局样式 */
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #2c3e50;
+    --background-color: #f5f6fa;
+    --text-color: #333;
+    --border-color: #ddd;
+    --hover-color: #357abd;
+    --success-color: #27ae60;
+    --error-color: #e74c3c;
+    --gradient-start: #4a90e2;
+    --gradient-end: #357abd;
+}
+
+body {
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    margin: 0;
+    padding: 0;
     min-height: 100vh;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--spacing-lg);
-    background: linear-gradient(135deg, var(--primary-color), var(--background-color));
 }
 
-.auth-card {
-    background: var(--sidebar-color);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-lg);
+.auth-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 480px;
-    box-shadow: 0 8px 24px var(--shadow-color);
+    max-width: 400px;
+    padding: 2rem;
+    margin: 1rem;
+    position: relative;
+    overflow: hidden;
 }
 
 .auth-header {
     text-align: center;
-    margin-bottom: var(--spacing-lg);
-}
-
-.auth-header .logo {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    font-size: 1.8rem;
-    color: var(--text-color);
-    text-decoration: none;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: 2rem;
 }
 
 .auth-header h1 {
-    font-size: 1.5rem;
-    color: var(--text-color);
-    margin-top: var(--spacing-sm);
+    color: var(--secondary-color);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: #666;
+    font-size: 1rem;
+    margin: 0;
 }
 
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: 1.5rem;
 }
 
 .form-group {
@@ -49,197 +64,156 @@
 
 .form-group label {
     display: block;
-    margin-bottom: var(--spacing-xs);
-    color: var(--text-secondary);
-}
-
-.form-group label i {
-    margin-right: var(--spacing-xs);
     color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
 }
 
 .form-group input {
     width: 100%;
-    padding: var(--spacing-sm);
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    color: var(--text-color);
-    transition: var(--transition);
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
 }
 
 .form-group input:focus {
-    border-color: var(--secondary-color);
-    box-shadow: 0 0 0 2px rgba(40,167,69,0.2);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
     outline: none;
 }
 
-.form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: var(--spacing-sm) 0;
-}
-
-.remember-me {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    color: var(--text-secondary);
-    cursor: pointer;
-}
-
-.forgot-password {
-    color: var(--secondary-color);
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: var(--transition);
-}
-
-.forgot-password:hover {
-    text-decoration: underline;
+.form-group i {
+    position: absolute;
+    right: 1rem;
+    top: 2.3rem;
+    color: #666;
 }
 
 .auth-button {
-    width: 100%;
-    padding: var(--spacing-sm);
-    background: var(--secondary-color);
-    color: var(--text-color);
+    background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+    color: white;
     border: none;
-    border-radius: var(--border-radius);
+    padding: 1rem;
+    border-radius: 10px;
     font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
+    transition: all 0.3s ease;
+    margin-top: 1rem;
 }
 
 .auth-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--shadow-color);
+    box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
 }
 
-.auth-footer {
+.auth-links {
     text-align: center;
-    margin-top: var(--spacing-lg);
-    padding-top: var(--spacing-lg);
-    border-top: 1px solid var(--border-color);
-    color: var(--text-secondary);
+    margin-top: 1.5rem;
 }
 
-.auth-footer a {
-    color: var(--secondary-color);
+.auth-links a {
+    color: var(--primary-color);
     text-decoration: none;
-    transition: var(--transition);
+    font-size: 0.9rem;
+    margin: 0 0.5rem;
+    transition: color 0.3s ease;
 }
 
-.auth-footer a:hover {
+.auth-links a:hover {
+    color: var(--hover-color);
     text-decoration: underline;
 }
 
-/* Avatar Upload Styles */
-.avatar-upload {
-    text-align: center;
-    margin-bottom: var(--spacing-lg);
-}
-
-.avatar-preview {
-    width: 120px;
-    height: 120px;
-    margin: 0 auto var(--spacing-sm);
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid var(--secondary-color);
-}
-
-.avatar-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.avatar-actions {
-    display: flex;
-    gap: var(--spacing-sm);
-    justify-content: center;
-}
-
-.avatar-button {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    color: var(--text-color);
-    cursor: pointer;
-    transition: var(--transition);
+.divider {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #666;
 }
 
-.avatar-button:hover {
-    background: var(--hover-color);
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border-color);
 }
 
-/* Password Strength Indicator */
-.password-strength {
-    height: 4px;
-    margin-top: var(--spacing-xs);
-    border-radius: 2px;
-    transition: var(--transition);
-}
-
-.password-strength.weak {
-    background: #dc3545;
-    width: 33.33%;
-}
-
-.password-strength.medium {
-    background: #ffc107;
-    width: 66.66%;
-}
-
-.password-strength.strong {
-    background: var(--secondary-color);
-    width: 100%;
-}
-
-/* Form Agreement */
-.form-agreement {
-    color: var(--text-secondary);
+.divider span {
+    padding: 0 1rem;
     font-size: 0.9rem;
 }
 
-.form-agreement label {
+.social-login {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-button {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    color: #666;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-.form-agreement a {
-    color: var(--secondary-color);
-    text-decoration: none;
+.social-button:hover {
+    background: var(--background-color);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
-.form-agreement a:hover {
-    text-decoration: underline;
+/* 错误提示样式 */
+.error-message {
+    color: var(--error-color);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: none;
 }
 
-/* Responsive Design */
+.form-group.error input {
+    border-color: var(--error-color);
+}
+
+.form-group.error .error-message {
+    display: block;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.auth-container {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* 响应式设计 */
 @media (max-width: 480px) {
-    .auth-card {
-        padding: var(--spacing-md);
+    .auth-container {
+        margin: 1rem;
+        padding: 1.5rem;
     }
-    
-    .avatar-actions {
-        flex-direction: column;
-    }
-    
-    .form-options {
-        flex-direction: column;
-        gap: var(--spacing-sm);
-        align-items: flex-start;
+
+    .auth-header h1 {
+        font-size: 1.75rem;
     }
 } 

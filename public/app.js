@@ -30,8 +30,23 @@ function showLoginModal() {
     const modalHtml = `
         <div class="auth-modal">
             <div class="auth-form">
+                <div class="avatar-upload">
+                    <div class="avatar-preview">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="用户头像" id="avatar-preview">
+                    </div>
+                    <div class="avatar-actions">
+                        <label for="avatar-input" class="avatar-upload-btn">
+                            <i class="fas fa-camera"></i> 更换头像
+                        </label>
+                        <input type="file" id="avatar-input" accept="image/*" style="display: none;">
+                    </div>
+                </div>
                 <h2>登录</h2>
                 <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-username">用户名</label>
+                        <input type="text" id="login-username" required>
+                    </div>
                     <div class="form-group">
                         <label for="login-email">邮箱</label>
                         <input type="email" id="login-email" required>
@@ -72,6 +87,17 @@ function showSignupModal() {
     const modalHtml = `
         <div class="auth-modal">
             <div class="auth-form">
+                <div class="avatar-upload">
+                    <div class="avatar-preview">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="用户头像" id="signup-avatar-preview">
+                    </div>
+                    <div class="avatar-actions">
+                        <label for="signup-avatar-input" class="avatar-upload-btn">
+                            <i class="fas fa-camera"></i> 更换头像
+                        </label>
+                        <input type="file" id="signup-avatar-input" accept="image/*" style="display: none;">
+                    </div>
+                </div>
                 <h2>注册</h2>
                 <form id="signup-form">
                     <div class="form-group">
@@ -85,6 +111,10 @@ function showSignupModal() {
                     <div class="form-group">
                         <label for="signup-password">密码</label>
                         <input type="password" id="signup-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">确认密码</label>
+                        <input type="password" id="signup-confirm-password" required>
                     </div>
                     <button type="submit">注册</button>
                     <p class="auth-switch">已有账号？<a href="#" id="switch-to-login">立即登录</a></p>
@@ -145,16 +175,17 @@ function initAvatarUpload() {
 // 处理登录
 async function handleLogin(e) {
     e.preventDefault();
+    const username = document.getElementById('login-username').value;
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     const avatar = document.getElementById('avatar-preview').src;
 
     try {
         const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const user = users.find(u => u.email === email && u.password === password);
+        const user = users.find(u => u.email === email && u.password === password && u.username === username);
         
         if (!user) {
-            throw new Error('邮箱或密码错误');
+            throw new Error('用户名、邮箱或密码错误');
         }
 
         // 保存登录状态
@@ -179,10 +210,23 @@ async function handleSignup(e) {
     const username = document.getElementById('signup-username').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
     const avatar = document.getElementById('signup-avatar-preview').src;
 
     try {
+        // 验证密码
+        if (password !== confirmPassword) {
+            throw new Error('两次输入的密码不一致');
+        }
+
         const users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // 检查用户名是否已存在
+        if (users.some(u => u.username === username)) {
+            throw new Error('该用户名已被使用');
+        }
+        
+        // 检查邮箱是否已存在
         if (users.some(u => u.email === email)) {
             throw new Error('该邮箱已被注册');
         }

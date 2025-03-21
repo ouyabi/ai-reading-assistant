@@ -5,6 +5,10 @@ const path = require('path');
 const axios = require('axios');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const fs = require('fs');
 
 // 加载环境变量
 dotenv.config();
@@ -190,6 +194,264 @@ app.post('/api/analyze', async (req, res) => {
             success: false,
             message: '分析失败，请稍后重试'
         });
+    }
+});
+
+// 用户数据存储（实际应用中应该使用数据库）
+let users = [];
+
+// JWT密钥
+const JWT_SECRET = 'your-secret-key';
+
+// 中间件：验证JWT token
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ error: '未提供认证token' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ error: 'token无效' });
+        }
+        req.user = user;
+        next();
+    });
+};
+
+// API路由
+// 注册
+app.post('/api/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+
+        // 验证输入
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: '所有字段都是必填的' });
+        }
+
+        // 验证邮箱格式
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: '邮箱格式无效' });
+        }
+
+        // 验证密码强度
+        if (password.length < 6) {
+            return res.status(400).json({ error: '密码长度至少为6位' });
+        }
+
+        // 检查用户是否已存在
+        if (users.some(user => user.email === email)) {
+            return res.status(400).json({ error: '该邮箱已被注册' });
+        }
+
+        // 加密密码
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // 创建新用户
+        const newUser = {
+            id: Date.now().toString(),
+            username,
+            email,
+            password: hashedPassword,
+            avatar: null,
+            createdAt: new Date().toISOString()
+        };
+
+        users.push(newUser);
+
+        // 生成JWT token
+        const token = jwt.sign(
+            { id: newUser.id, email: newUser.email },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.status(201).json({
+            message: '注册成功',
+            token,
+            user: {
+                id: newUser.id,
+                username: newUser.username,
+                email: newUser.email,
+                avatar: newUser.avatar
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: '服务器错误' });
+    }
+});
+
+// 登录
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // 验证输入
+        if (!email || !password) {
+            return res.status(400).json({ error: '邮箱和密码都是必填的' });
+        }
+
+        // 查找用户
+        const user = users.find(u => u.email === email);
+        if (!user) {
+            return res.status(401).json({ error: '用户不存在' });
+        }
+
+        // 验证密码
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: '密码错误' });
+        }
+
+        // 生成JWT token
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.json({
+            message: '登录成功',
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                avatar: user.avatar
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: '服务器错误' });
+    }
+});
+
+// 配置文件上传
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = 'public/uploads/avatars';
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 限制5MB
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('只允许上传图片文件'));
+        }
+    }
+});
+
+// 上传头像
+app.post('/api/upload-avatar', authenticateToken, upload.single('avatar'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: '没有上传文件' });
+        }
+
+        const user = users.find(u => u.id === req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: '用户不存在' });
+        }
+
+        // 删除旧头像
+        if (user.avatar) {
+            const oldAvatarPath = path.join(__dirname, user.avatar);
+            if (fs.existsSync(oldAvatarPath)) {
+                fs.unlinkSync(oldAvatarPath);
+            }
+        }
+
+        // 更新用户头像
+        user.avatar = `/uploads/avatars/${req.file.filename}`;
+
+        res.json({
+            message: '头像上传成功',
+            avatar: user.avatar
+        });
+    } catch (error) {
+        res.status(500).json({ error: '服务器错误' });
+    }
+});
+
+// 获取用户信息
+app.get('/api/user', authenticateToken, (req, res) => {
+    const user = users.find(u => u.id === req.user.id);
+    if (!user) {
+        return res.status(404).json({ error: '用户不存在' });
+    }
+
+    res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        createdAt: user.createdAt
+    });
+});
+
+// 更新用户信息
+app.put('/api/user', authenticateToken, async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        const user = users.find(u => u.id === req.user.id);
+
+        if (!user) {
+            return res.status(404).json({ error: '用户不存在' });
+        }
+
+        // 更新用户名
+        if (username) {
+            user.username = username;
+        }
+
+        // 更新邮箱
+        if (email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({ error: '邮箱格式无效' });
+            }
+            if (users.some(u => u.email === email && u.id !== user.id)) {
+                return res.status(400).json({ error: '该邮箱已被使用' });
+            }
+            user.email = email;
+        }
+
+        // 更新密码
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({ error: '密码长度至少为6位' });
+            }
+            user.password = await bcrypt.hash(password, 10);
+        }
+
+        res.json({
+            message: '用户信息更新成功',
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                avatar: user.avatar
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: '服务器错误' });
     }
 });
 

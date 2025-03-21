@@ -33,52 +33,222 @@ function generateRandomAvatar() {
     }
 }
 
-// 用户认证相关的工具函数
+// 认证工具类
 const AuthUtils = {
-    // 检查用户是否已登录
-    isLoggedIn() {
-        const user = localStorage.getItem('currentUser');
-        return user !== null;
-    },
-
-    // 获取当前登录用户信息
+    // 获取当前用户
     getCurrentUser() {
-        try {
-            return JSON.parse(localStorage.getItem('currentUser'));
-        } catch {
-            return null;
-        }
+        const user = localStorage.getItem('currentUser');
+        return user ? JSON.parse(user) : null;
     },
 
-    // 设置当前登录用户
-    setCurrentUser(userData) {
-        localStorage.setItem('currentUser', JSON.stringify(userData));
+    // 设置当前用户
+    setCurrentUser(user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
     },
 
-    // 清除登录状态
+    // 获取token
+    getToken() {
+        return localStorage.getItem('token');
+    },
+
+    // 设置token
+    setToken(token) {
+        localStorage.setItem('token', token);
+    },
+
+    // 清除认证信息
     clearAuth() {
         localStorage.removeItem('currentUser');
+        localStorage.removeItem('token');
     },
 
-    // 保存用户头像
-    saveAvatar(avatarData) {
-        localStorage.setItem('tempAvatar', avatarData);
+    // 检查是否已登录
+    isAuthenticated() {
+        return !!this.getToken();
     }
 };
 
 // 处理头像上传
-function handleAvatarUpload(input, previewId) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        const preview = document.getElementById(previewId);
-        
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            AuthUtils.saveAvatar(e.target.result);
-        }
-        
-        reader.readAsDataURL(input.files[0]);
+async function handleAvatarUpload(fileInput, previewId) {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+        alert('请选择图片文件');
+        return;
     }
+
+    // 验证文件大小（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+        alert('图片大小不能超过5MB');
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        const response = await fetch('/api/upload-avatar', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${AuthUtils.getToken()}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('上传失败');
+        }
+
+        const data = await response.json();
+        const preview = document.getElementById(previewId);
+        if (preview) {
+            preview.src = data.avatar;
+        }
+
+        // 更新当前用户信息
+        const currentUser = AuthUtils.getCurrentUser();
+        if (currentUser) {
+            currentUser.avatar = data.avatar;
+            AuthUtils.setCurrentUser(currentUser);
+        }
+    } catch (error) {
+        alert('头像上传失败：' + error.message);
+    }
+}
+
+// 处理登录
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '登录失败');
+        }
+
+        // 保存认证信息
+        AuthUtils.setToken(data.token);
+        AuthUtils.setCurrentUser(data.user);
+
+        // 更新UI
+        updateUIForAuthenticatedUser();
+        
+        // 关闭模态框
+        const modal = document.querySelector('.auth-modal');
+        if (modal) {
+            modal.remove();
+        }
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+// 处理注册
+async function handleSignup(e) {
+    e.preventDefault();
+    const username = document.getElementById('signup-username').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const avatar = document.getElementById('signup-avatar-preview')?.src;
+
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '注册失败');
+        }
+
+        // 保存认证信息
+        AuthUtils.setToken(data.token);
+        AuthUtils.setCurrentUser(data.user);
+
+        // 更新UI
+        updateUIForAuthenticatedUser();
+        
+        // 关闭模态框
+        const modal = document.querySelector('.auth-modal');
+        if (modal) {
+            modal.remove();
+        }
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+// 处理退出登录
+function handleLogout() {
+    AuthUtils.clearAuth();
+    location.reload();
+}
+
+// 更新UI显示已登录用户信息
+function updateUIForAuthenticatedUser() {
+    const currentUser = AuthUtils.getCurrentUser();
+    if (!currentUser) return;
+
+    // 更新用户菜单
+    const userMenu = document.querySelector('.user-menu');
+    if (userMenu) {
+        userMenu.innerHTML = `
+            <span class="user-welcome">欢迎，${currentUser.username}</span>
+            <button class="logout-btn" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> 退出
+            </button>
+        `;
+    }
+
+    // 更新侧边栏用户信息
+    const userInfo = document.querySelector('.user-info');
+    if (userInfo) {
+        const username = userInfo.querySelector('.username');
+        const avatar = userInfo.querySelector('.avatar');
+        if (username) username.textContent = currentUser.username;
+        if (avatar && currentUser.avatar) avatar.src = currentUser.avatar;
+    }
+}
+
+// 初始化认证系统
+function initAuth() {
+    // 检查是否已登录
+    if (AuthUtils.isAuthenticated()) {
+        updateUIForAuthenticatedUser();
+    }
+
+    // 添加登录按钮事件监听
+    const loginBtn = document.querySelector('.login-btn');
+    const signupBtn = document.querySelector('.signup-btn');
+    
+    if (loginBtn) {
+        loginBtn.addEventListener('click', showLoginModal);
+    }
+    
+    if (signupBtn) {
+        signupBtn.addEventListener('click', showSignupModal);
+    }
+
+    // 初始化头像上传功能
+    initAvatarUpload();
 }
 
 // 初始化头像上传功能
@@ -99,105 +269,22 @@ function initAvatarUpload() {
     }
 }
 
-// 头像相关功能
-function initializeAvatarFunctions() {
-    const uploadAvatarBtn = document.getElementById('uploadAvatar');
-    const randomAvatarBtn = document.getElementById('randomAvatar');
-    const avatarPreview = document.getElementById('avatarPreview');
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    
-    // 上传头像
-    uploadAvatarBtn?.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                avatarPreview.src = e.target.result;
-                // 这里可以添加将头像数据保存到服务器的代码
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // 随机头像
-    randomAvatarBtn?.addEventListener('click', () => {
-        const seed = Math.random().toString(36).substring(7);
-        avatarPreview.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
-    });
-}
-
-// 表单验证
-function validateForm(formId) {
-    const form = document.getElementById(formId);
-    const inputs = form.querySelectorAll('input');
-    let isValid = true;
-
-    inputs.forEach(input => {
-        const group = input.parentElement;
-        group.classList.remove('error');
-
-        if (input.required && !input.value) {
-            group.classList.add('error');
-            isValid = false;
-        }
-
-        if (input.type === 'email' && input.value) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(input.value)) {
-                group.classList.add('error');
-                isValid = false;
-            }
-        }
-
-        if (input.type === 'password' && input.value) {
-            if (input.value.length < 6) {
-                group.classList.add('error');
-                isValid = false;
-            }
-        }
-
-        if (input.id === 'confirmPassword') {
-            const password = document.getElementById('password');
-            if (password && input.value !== password.value) {
-                group.classList.add('error');
-                isValid = false;
-            }
-        }
-    });
-
-    return isValid;
-}
-
-// 用户认证状态管理
-let currentUser = null;
-
-// 用户数据模拟存储
-const users = new Map();
-
-// 初始化认证系统
-function initAuth() {
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-        currentUser = JSON.parse(storedUser);
-        updateUIForAuthenticatedUser();
-    }
-
-    // 添加登录按钮事件监听
-    document.querySelector('.login-btn').addEventListener('click', showLoginModal);
-    document.querySelector('.signup-btn').addEventListener('click', showSignupModal);
-}
-
 // 显示登录模态框
 function showLoginModal() {
     const modalHtml = `
         <div class="auth-modal">
             <div class="auth-form">
+                <div class="avatar-upload">
+                    <div class="avatar-preview">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="用户头像" id="avatar-preview">
+                    </div>
+                    <div class="avatar-actions">
+                        <label for="avatar-input" class="avatar-upload-btn">
+                            <i class="fas fa-camera"></i> 更换头像
+                        </label>
+                        <input type="file" id="avatar-input" accept="image/*" style="display: none;">
+                    </div>
+                </div>
                 <h2>登录</h2>
                 <form id="login-form">
                     <div class="form-group">
@@ -209,6 +296,7 @@ function showLoginModal() {
                         <input type="password" id="login-password" required>
                     </div>
                     <button type="submit">登录</button>
+                    <p class="auth-switch">还没有账号？<a href="#" id="switch-to-signup">立即注册</a></p>
                 </form>
             </div>
         </div>
@@ -221,6 +309,11 @@ function showLoginModal() {
     });
 
     document.getElementById('login-form').addEventListener('submit', handleLogin);
+    document.getElementById('switch-to-signup').addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.remove();
+        showSignupModal();
+    });
 }
 
 // 显示注册模态框
@@ -228,6 +321,17 @@ function showSignupModal() {
     const modalHtml = `
         <div class="auth-modal">
             <div class="auth-form">
+                <div class="avatar-upload">
+                    <div class="avatar-preview">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="用户头像" id="signup-avatar-preview">
+                    </div>
+                    <div class="avatar-actions">
+                        <label for="signup-avatar-input" class="avatar-upload-btn">
+                            <i class="fas fa-camera"></i> 更换头像
+                        </label>
+                        <input type="file" id="signup-avatar-input" accept="image/*" style="display: none;">
+                    </div>
+                </div>
                 <h2>注册</h2>
                 <form id="signup-form">
                     <div class="form-group">
@@ -243,6 +347,7 @@ function showSignupModal() {
                         <input type="password" id="signup-password" required>
                     </div>
                     <button type="submit">注册</button>
+                    <p class="auth-switch">已有账号？<a href="#" id="switch-to-login">立即登录</a></p>
                 </form>
             </div>
         </div>
@@ -255,116 +360,11 @@ function showSignupModal() {
     });
 
     document.getElementById('signup-form').addEventListener('submit', handleSignup);
-}
-
-// 处理登录
-async function handleLogin(e) {
-    e.preventDefault();
-    const username = document.getElementById('login-username').value;
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    const avatar = document.getElementById('avatar-preview')?.src;
-
-    try {
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const user = users.find(u => u.email === email && u.password === password && u.username === username);
-        
-        if (!user) {
-            throw new Error('用户名、邮箱或密码错误');
-        }
-
-        // 保存登录状态
-        const userData = {
-            email: user.email,
-            username: user.username,
-            avatar: avatar || user.avatar,
-            readingTime: user.readingTime || 0
-        };
-        
-        AuthUtils.setCurrentUser(userData);
-        window.location.href = '/index.html';
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-// 处理注册
-async function handleSignup(e) {
-    e.preventDefault();
-    const username = document.getElementById('signup-username').value;
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
-    const confirmPassword = document.getElementById('signup-confirm-password').value;
-    const avatar = document.getElementById('signup-avatar-preview')?.src;
-
-    try {
-        // 验证密码
-        if (password !== confirmPassword) {
-            throw new Error('两次输入的密码不一致');
-        }
-
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        
-        // 检查用户名是否已存在
-        if (users.some(u => u.username === username)) {
-            throw new Error('该用户名已被使用');
-        }
-        
-        // 检查邮箱是否已存在
-        if (users.some(u => u.email === email)) {
-            throw new Error('该邮箱已被注册');
-        }
-
-        // 创建新用户
-        const newUser = {
-            username,
-            email,
-            password,
-            avatar,
-            registerDate: new Date().toISOString(),
-            readingTime: 0
-        };
-        
-        users.push(newUser);
-        localStorage.setItem('users', JSON.stringify(users));
-
-        // 自动登录
-        const userData = {
-            email: newUser.email,
-            username: newUser.username,
-            avatar: newUser.avatar,
-            readingTime: 0
-        };
-        
-        AuthUtils.setCurrentUser(userData);
-        window.location.href = '/index.html';
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-// 更新UI显示已登录用户信息
-function updateUIForAuthenticatedUser() {
-    const userMenu = document.querySelector('.user-menu');
-    userMenu.innerHTML = `
-        <span class="user-welcome">欢迎，${currentUser.username}</span>
-        <button class="logout-btn" onclick="handleLogout()">
-            <i class="fas fa-sign-out-alt"></i> 退出
-        </button>
-    `;
-
-    // 更新侧边栏用户信息
-    const userInfo = document.querySelector('.user-info');
-    if (userInfo) {
-        userInfo.querySelector('.username').textContent = currentUser.username;
-    }
-}
-
-// 处理退出登录
-function handleLogout() {
-    currentUser = null;
-    localStorage.removeItem('currentUser');
-    location.reload();
+    document.getElementById('switch-to-login').addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.remove();
+        showLoginModal();
+    });
 }
 
 // 页面加载完成后初始化认证系统

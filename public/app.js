@@ -49,7 +49,6 @@ function updateUserInterface(userData) {
     }
     
     // 更新用户菜单
-    const userMenu = document.querySelector('.user-menu');
     if (userMenu) {
         userMenu.innerHTML = `
             <span class="user-welcome">欢迎，${userData.username}</span>
@@ -76,13 +75,18 @@ function initializeUserState() {
     if (currentUser) {
         updateUserInterface(currentUser);
         startReadingTimeTracking(currentUser);
+    } else {
+        // 如果在主页但未登录，跳转到登录页面
+        if (window.location.pathname === '/index.html' || window.location.pathname === '/') {
+            window.location.href = '/login.html';
+        }
     }
 }
 
 // 追踪阅读时间
 function startReadingTimeTracking(user) {
     setInterval(() => {
-        user.readingTime++;
+        user.readingTime = (user.readingTime || 0) + 1;
         localStorage.setItem('currentUser', JSON.stringify(user));
         
         // 每5分钟保存一次到用户数据
@@ -102,17 +106,10 @@ function startReadingTimeTracking(user) {
 
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', () => {
-    // 检查登录状态
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (!currentUser) {
-        // 如果未登录，跳转到登录页面
-        window.location.href = '/login.html';
-        return;
-    }
-    
-    // 如果已登录，更新用户界面并初始化功能
-    updateUserInterface(currentUser);
+    // 初始化用户状态（包含登录检查）
     initializeUserState();
+    
+    // 初始化其他功能
     initNavigation();
     initMobileMenu();
     initCtaButton();

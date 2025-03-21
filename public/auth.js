@@ -33,7 +33,40 @@ function generateRandomAvatar() {
     }
 }
 
-// 头像上传处理
+// 用户认证相关的工具函数
+const AuthUtils = {
+    // 检查用户是否已登录
+    isLoggedIn() {
+        const user = localStorage.getItem('currentUser');
+        return user !== null;
+    },
+
+    // 获取当前登录用户信息
+    getCurrentUser() {
+        try {
+            return JSON.parse(localStorage.getItem('currentUser'));
+        } catch {
+            return null;
+        }
+    },
+
+    // 设置当前登录用户
+    setCurrentUser(userData) {
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+    },
+
+    // 清除登录状态
+    clearAuth() {
+        localStorage.removeItem('currentUser');
+    },
+
+    // 保存用户头像
+    saveAvatar(avatarData) {
+        localStorage.setItem('tempAvatar', avatarData);
+    }
+};
+
+// 处理头像上传
 function handleAvatarUpload(input, previewId) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -41,10 +74,28 @@ function handleAvatarUpload(input, previewId) {
         
         reader.onload = function(e) {
             preview.src = e.target.result;
-            localStorage.setItem('tempAvatar', e.target.result);
+            AuthUtils.saveAvatar(e.target.result);
         }
         
         reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// 初始化头像上传功能
+function initAvatarUpload() {
+    const loginAvatarInput = document.getElementById('avatar-input');
+    const signupAvatarInput = document.getElementById('signup-avatar-input');
+    
+    if (loginAvatarInput) {
+        loginAvatarInput.addEventListener('change', function() {
+            handleAvatarUpload(this, 'avatar-preview');
+        });
+    }
+    
+    if (signupAvatarInput) {
+        signupAvatarInput.addEventListener('change', function() {
+            handleAvatarUpload(this, 'signup-avatar-preview');
+        });
     }
 }
 
@@ -206,13 +257,13 @@ function showSignupModal() {
     document.getElementById('signup-form').addEventListener('submit', handleSignup);
 }
 
-// 处理登录表单提交
+// 处理登录
 async function handleLogin(e) {
     e.preventDefault();
     const username = document.getElementById('login-username').value;
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
-    const avatar = document.getElementById('avatar-preview').src;
+    const avatar = document.getElementById('avatar-preview')?.src;
 
     try {
         const users = JSON.parse(localStorage.getItem('users') || '[]');
@@ -230,22 +281,21 @@ async function handleLogin(e) {
             readingTime: user.readingTime || 0
         };
         
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        // 登录成功后跳转到主页
+        AuthUtils.setCurrentUser(userData);
         window.location.href = '/index.html';
     } catch (error) {
         alert(error.message);
     }
 }
 
-// 处理注册表单提交
+// 处理注册
 async function handleSignup(e) {
     e.preventDefault();
     const username = document.getElementById('signup-username').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const confirmPassword = document.getElementById('signup-confirm-password').value;
-    const avatar = document.getElementById('signup-avatar-preview').src;
+    const avatar = document.getElementById('signup-avatar-preview')?.src;
 
     try {
         // 验证密码
@@ -286,8 +336,7 @@ async function handleSignup(e) {
             readingTime: 0
         };
         
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        // 注册成功后跳转到主页
+        AuthUtils.setCurrentUser(userData);
         window.location.href = '/index.html';
     } catch (error) {
         alert(error.message);
@@ -383,4 +432,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // 这里添加社交登录逻辑
         });
     });
+
+    // 检查是否在登录/注册页面
+    const isAuthPage = window.location.pathname.includes('login.html') || 
+                      window.location.pathname.includes('register.html');
+    
+    // 如果已登录且在登录/注册页面，跳转到主页
+    if (AuthUtils.isLoggedIn() && isAuthPage) {
+        window.location.href = '/index.html';
+        return;
+    }
+    
+    // 初始化头像上传
+    initAvatarUpload();
 }); 

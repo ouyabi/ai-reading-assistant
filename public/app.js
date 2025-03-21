@@ -12,12 +12,21 @@ const userProfile = document.querySelector('.user-profile');
 function checkAuthAndShowLogin() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser) {
+        // 只有在未登录状态下才显示登录模态框
         showLoginModal();
+    } else {
+        // 如果已登录，更新用户界面
+        updateUserInterface(currentUser);
     }
 }
 
 // 显示登录模态框
 function showLoginModal() {
+    // 检查是否已经存在登录模态框
+    if (document.querySelector('.auth-modal')) {
+        return;
+    }
+
     const modalHtml = `
         <div class="auth-modal">
             <div class="auth-form">
@@ -55,6 +64,11 @@ function showLoginModal() {
 
 // 显示注册模态框
 function showSignupModal() {
+    // 检查是否已经存在注册模态框
+    if (document.querySelector('.auth-modal')) {
+        return;
+    }
+
     const modalHtml = `
         <div class="auth-modal">
             <div class="auth-form">
@@ -113,13 +127,12 @@ async function handleLogin(e) {
             email: user.email,
             username: user.username,
             avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
-            readingTime: 0
+            readingTime: user.readingTime || 0
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
         document.querySelector('.auth-modal').remove();
         updateUserInterface(userData);
-        location.reload(); // 刷新页面以更新所有状态
     } catch (error) {
         alert(error.message);
     }
@@ -161,7 +174,6 @@ async function handleSignup(e) {
         localStorage.setItem('currentUser', JSON.stringify(userData));
         document.querySelector('.auth-modal').remove();
         updateUserInterface(userData);
-        location.reload(); // 刷新页面以更新所有状态
     } catch (error) {
         alert(error.message);
     }
@@ -273,8 +285,21 @@ function startReadingTimeTracking(user) {
 
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', () => {
-    checkAuthAndShowLogin();
+    // 检查登录状态
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+        // 只有在未登录状态下才显示登录模态框
+        showLoginModal();
+    } else {
+        // 如果已登录，更新用户界面
+        updateUserInterface(currentUser);
+    }
+    
     initializeUserState();
+    initNavigation();
+    initMobileMenu();
+    initCtaButton();
+    initNotes();
 });
 
 // Mobile Menu Toggle

@@ -3,279 +3,8 @@ const menuToggle = document.getElementById('menu-toggle');
 const sidebar = document.querySelector('.sidebar');
 const sections = document.querySelectorAll('.section');
 const navLinks = document.querySelectorAll('.main-nav a');
-const loginBtn = document.querySelector('.login-btn');
-const signupBtn = document.querySelector('.signup-btn');
 const userMenu = document.querySelector('.user-menu');
 const userProfile = document.querySelector('.user-profile');
-
-// 登录状态管理
-let isAuthModalShown = false;
-
-// 检查登录状态
-function checkAuthStatus() {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    return currentUser !== null;
-}
-
-// 显示登录模态框
-function showLoginModal() {
-    // 防止重复显示
-    if (isAuthModalShown || checkAuthStatus()) {
-        return;
-    }
-    
-    isAuthModalShown = true;
-
-    const modalHtml = `
-        <div class="auth-modal">
-            <div class="auth-form">
-                <div class="avatar-upload">
-                    <div class="avatar-preview">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="用户头像" id="avatar-preview">
-                    </div>
-                    <div class="avatar-actions">
-                        <label for="avatar-input" class="avatar-upload-btn">
-                            <i class="fas fa-camera"></i> 更换头像
-                        </label>
-                        <input type="file" id="avatar-input" accept="image/*" style="display: none;">
-                    </div>
-                </div>
-                <h2>登录</h2>
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="login-username">用户名</label>
-                        <input type="text" id="login-username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-email">邮箱</label>
-                        <input type="email" id="login-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">密码</label>
-                        <input type="password" id="login-password" required>
-                    </div>
-                    <button type="submit">登录</button>
-                    <p class="auth-switch">还没有账号？<a href="#" id="switch-to-signup">立即注册</a></p>
-                </form>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    const modal = document.querySelector('.auth-modal');
-    const switchToSignup = document.getElementById('switch-to-signup');
-    
-    // 切换到注册界面
-    switchToSignup.addEventListener('click', (e) => {
-        e.preventDefault();
-        modal.remove();
-        isAuthModalShown = false;
-        showSignupModal();
-    });
-
-    // 处理登录表单提交
-    document.getElementById('login-form').addEventListener('submit', handleLogin);
-    initAvatarUpload();
-}
-
-// 显示注册模态框
-function showSignupModal() {
-    // 防止重复显示
-    if (isAuthModalShown || checkAuthStatus()) {
-        return;
-    }
-    
-    isAuthModalShown = true;
-
-    const modalHtml = `
-        <div class="auth-modal">
-            <div class="auth-form">
-                <div class="avatar-upload">
-                    <div class="avatar-preview">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="用户头像" id="signup-avatar-preview">
-                    </div>
-                    <div class="avatar-actions">
-                        <label for="signup-avatar-input" class="avatar-upload-btn">
-                            <i class="fas fa-camera"></i> 更换头像
-                        </label>
-                        <input type="file" id="signup-avatar-input" accept="image/*" style="display: none;">
-                    </div>
-                </div>
-                <h2>注册</h2>
-                <form id="signup-form">
-                    <div class="form-group">
-                        <label for="signup-username">用户名</label>
-                        <input type="text" id="signup-username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-email">邮箱</label>
-                        <input type="email" id="signup-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-password">密码</label>
-                        <input type="password" id="signup-password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-confirm-password">确认密码</label>
-                        <input type="password" id="signup-confirm-password" required>
-                    </div>
-                    <button type="submit">注册</button>
-                    <p class="auth-switch">已有账号？<a href="#" id="switch-to-login">立即登录</a></p>
-                </form>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    const modal = document.querySelector('.auth-modal');
-    const switchToLogin = document.getElementById('switch-to-login');
-    
-    // 切换到登录界面
-    switchToLogin.addEventListener('click', (e) => {
-        e.preventDefault();
-        modal.remove();
-        isAuthModalShown = false;
-        showLoginModal();
-    });
-
-    // 处理注册表单提交
-    document.getElementById('signup-form').addEventListener('submit', handleSignup);
-    initAvatarUpload();
-}
-
-// 处理头像上传
-function handleAvatarUpload(input, previewId) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        const preview = document.getElementById(previewId);
-        
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            // 保存头像到localStorage
-            localStorage.setItem('userAvatar', e.target.result);
-            
-            // 更新当前用户的头像
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (currentUser) {
-                currentUser.avatar = e.target.result;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                updateUserInterface(currentUser);
-            }
-        }
-        
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-// 初始化头像上传功能
-function initAvatarUpload() {
-    const loginAvatarInput = document.getElementById('avatar-input');
-    const signupAvatarInput = document.getElementById('signup-avatar-input');
-    
-    if (loginAvatarInput) {
-        loginAvatarInput.addEventListener('change', function() {
-            handleAvatarUpload(this, 'avatar-preview');
-        });
-    }
-    
-    if (signupAvatarInput) {
-        signupAvatarInput.addEventListener('change', function() {
-            handleAvatarUpload(this, 'signup-avatar-preview');
-        });
-    }
-}
-
-// 处理登录
-async function handleLogin(e) {
-    e.preventDefault();
-    const username = document.getElementById('login-username').value;
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    const avatar = document.getElementById('avatar-preview').src;
-
-    try {
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const user = users.find(u => u.email === email && u.password === password && u.username === username);
-        
-        if (!user) {
-            throw new Error('用户名、邮箱或密码错误');
-        }
-
-        // 保存登录状态
-        const userData = {
-            email: user.email,
-            username: user.username,
-            avatar: avatar || user.avatar,
-            readingTime: user.readingTime || 0
-        };
-        
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        document.querySelector('.auth-modal')?.remove();
-        isAuthModalShown = false;
-        updateUserInterface(userData);
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-// 处理注册
-async function handleSignup(e) {
-    e.preventDefault();
-    const username = document.getElementById('signup-username').value;
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
-    const confirmPassword = document.getElementById('signup-confirm-password').value;
-    const avatar = document.getElementById('signup-avatar-preview').src;
-
-    try {
-        // 验证密码
-        if (password !== confirmPassword) {
-            throw new Error('两次输入的密码不一致');
-        }
-
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        
-        // 检查用户名是否已存在
-        if (users.some(u => u.username === username)) {
-            throw new Error('该用户名已被使用');
-        }
-        
-        // 检查邮箱是否已存在
-        if (users.some(u => u.email === email)) {
-            throw new Error('该邮箱已被注册');
-        }
-
-        // 创建新用户
-        const newUser = {
-            username,
-            email,
-            password,
-            avatar,
-            registerDate: new Date().toISOString(),
-            readingTime: 0
-        };
-        
-        users.push(newUser);
-        localStorage.setItem('users', JSON.stringify(users));
-
-        // 自动登录
-        const userData = {
-            email: newUser.email,
-            username: newUser.username,
-            avatar: newUser.avatar,
-            readingTime: 0
-        };
-        
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        document.querySelector('.auth-modal')?.remove();
-        isAuthModalShown = false;
-        updateUserInterface(userData);
-    } catch (error) {
-        alert(error.message);
-    }
-}
 
 // 更新用户界面
 function updateUserInterface(userData) {
@@ -344,10 +73,8 @@ function handleLogout() {
 // 初始化用户状态
 function initializeUserState() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    updateUserInterface(currentUser);
-
-    // 如果已登录，开始追踪阅读时间
     if (currentUser) {
+        updateUserInterface(currentUser);
         startReadingTimeTracking(currentUser);
     }
 }
@@ -383,10 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    // 如果已登录，更新用户界面
+    // 如果已登录，更新用户界面并初始化功能
     updateUserInterface(currentUser);
-    
-    // 初始化其他功能
     initializeUserState();
     initNavigation();
     initMobileMenu();
@@ -462,11 +187,9 @@ function addMessage(content, isAI = false) {
     const messageContent = document.createElement('div');
     messageContent.className = 'message-content';
     
-    // 如果内容包含列表，保持HTML格式
     if (content.includes('<ul>')) {
         messageContent.innerHTML = content;
     } else {
-        // 将普通文本中的换行转换为<br>标签
         messageContent.innerHTML = content.replace(/\n/g, '<br>');
     }
     
@@ -501,7 +224,7 @@ async function sendMessage(message, isFile = false) {
         
         if (!currentUser) {
             alert('请先登录');
-            window.location.href = './login.html';
+            window.location.href = '/login.html';
             return;
         }
 
@@ -573,95 +296,19 @@ uploadButton?.addEventListener('click', () => {
     input.click();
 });
 
-// Reading progress
-const progressBar = document.querySelector('.progress');
-let readingTime = 0;
-
-// 模拟阅读时间更新
-if (progressBar) {
-    setInterval(() => {
-        readingTime++;
-        const progress = Math.min((readingTime / 100) * 100, 100);
-        progressBar.style.width = `${progress}%`;
-        
-        const timeDisplay = document.querySelector('.reading-progress p');
-        if (timeDisplay) {
-            timeDisplay.textContent = `已阅读 ${readingTime} 分钟`;
-        }
-    }, 60000); // 每分钟更新一次
-}
-
-// 添加笔记功能
-const newNoteBtn = document.querySelector('.new-note-btn');
-const notesGrid = document.querySelector('.notes-grid');
-
-newNoteBtn?.addEventListener('click', () => {
-    const noteTemplate = `
-        <article class="note-card">
-            <div class="note-header">
-                <h3>新笔记</h3>
-                <span class="date">${new Date().toLocaleDateString()}</span>
-            </div>
-            <p class="note-preview">开始写下你的想法...</p>
-            <div class="note-footer">
-                <div class="tags">
-                    <span class="tag">未分类</span>
-                </div>
-                <button class="more-btn"><i class="fas fa-ellipsis-h"></i></button>
-            </div>
-        </article>
-    `;
-    
-    notesGrid.insertAdjacentHTML('afterbegin', noteTemplate);
-});
-
-// 动画效果
-document.querySelectorAll('.card, .note-card, .feature-item').forEach(element => {
-    element.addEventListener('mouseover', () => {
-        element.style.transform = 'translateY(-5px)';
-    });
-    
-    element.addEventListener('mouseout', () => {
-        element.style.transform = 'translateY(0)';
-    });
-});
-
-// 主题切换功能（待实现）
-const themes = {
-    light: {
-        '--background-color': '#ffffff',
-        '--text-color': '#333333',
-        '--sidebar-color': '#f5f5f5',
-        '--card-bg': '#ffffff',
-        '--border-color': '#e0e0e0'
-    },
-    dark: {
-        '--background-color': '#342f2f',
-        '--text-color': '#ffffff',
-        '--sidebar-color': '#1f1f1f',
-        '--card-bg': 'rgba(255,255,255,0.1)',
-        '--border-color': 'rgba(255,255,255,0.2)'
-    }
-};
-
-// 后续可以添加主题切换功能
-
 // 页面导航功能
 function initNavigation() {
     const navLinks = document.querySelectorAll('.main-nav a');
     const sections = document.querySelectorAll('.section');
 
-    // 处理导航点击
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const targetId = link.getAttribute('href').slice(1);
             
-            // 更新活动导航项
             navLinks.forEach(l => l.classList.remove('active'));
             link.classList.add('active');
             
-            // 显示目标部分
             sections.forEach(section => {
                 section.classList.remove('active');
                 if (section.id === targetId) {
@@ -689,7 +336,6 @@ function initCtaButton() {
     const ctaButton = document.querySelector('.cta-button');
     if (ctaButton) {
         ctaButton.addEventListener('click', () => {
-            // 跳转到AI助手部分
             document.querySelector('a[href="#ai-assistant"]').click();
         });
     }
@@ -703,44 +349,24 @@ function initNotes() {
 
     if (newNoteBtn) {
         newNoteBtn.addEventListener('click', () => {
-            // 检查用户是否登录
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (!currentUser) {
                 alert('请先登录后再创建笔记');
-                document.querySelector('.login-btn').click();
+                window.location.href = '/login.html';
                 return;
             }
-            // TODO: 实现新建笔记功能
         });
     }
 
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            // TODO: 实现笔记搜索功能
             console.log('搜索:', e.target.value);
         });
     }
 
     filterSelects.forEach(select => {
         select.addEventListener('change', (e) => {
-            // TODO: 实现笔记过滤功能
             console.log('过滤:', e.target.value);
         });
     });
-}
-
-// 监听存储变化
-window.addEventListener('storage', (e) => {
-    if (e.key === 'currentUser') {
-        updateUserInterface();
-    }
-});
-
-// 页面加载完成后初始化所有功能
-document.addEventListener('DOMContentLoaded', () => {
-    initNavigation();
-    initMobileMenu();
-    initCtaButton();
-    initNotes();
-    updateUserInterface();
-}); 
+} 

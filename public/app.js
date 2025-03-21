@@ -108,11 +108,46 @@ function showSignupModal() {
     document.getElementById('signup-form').addEventListener('submit', handleSignup);
 }
 
+// 处理头像上传
+function handleAvatarUpload(input, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        const preview = document.getElementById(previewId);
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            // 保存头像到localStorage
+            localStorage.setItem('userAvatar', e.target.result);
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// 初始化头像上传功能
+function initAvatarUpload() {
+    const loginAvatarInput = document.getElementById('avatar-input');
+    const signupAvatarInput = document.getElementById('signup-avatar-input');
+    
+    if (loginAvatarInput) {
+        loginAvatarInput.addEventListener('change', function() {
+            handleAvatarUpload(this, 'avatar-preview');
+        });
+    }
+    
+    if (signupAvatarInput) {
+        signupAvatarInput.addEventListener('change', function() {
+            handleAvatarUpload(this, 'signup-avatar-preview');
+        });
+    }
+}
+
 // 处理登录
 async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
+    const avatar = document.getElementById('avatar-preview').src;
 
     try {
         const users = JSON.parse(localStorage.getItem('users') || '[]');
@@ -126,7 +161,7 @@ async function handleLogin(e) {
         const userData = {
             email: user.email,
             username: user.username,
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
+            avatar: avatar,
             readingTime: user.readingTime || 0
         };
         
@@ -144,6 +179,7 @@ async function handleSignup(e) {
     const username = document.getElementById('signup-username').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
+    const avatar = document.getElementById('signup-avatar-preview').src;
 
     try {
         const users = JSON.parse(localStorage.getItem('users') || '[]');
@@ -156,6 +192,7 @@ async function handleSignup(e) {
             username,
             email,
             password,
+            avatar,
             registerDate: new Date().toISOString(),
             readingTime: 0
         };
@@ -167,7 +204,7 @@ async function handleSignup(e) {
         const userData = {
             email: newUser.email,
             username: newUser.username,
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${newUser.username}`,
+            avatar: newUser.avatar,
             readingTime: 0
         };
         
@@ -180,67 +217,54 @@ async function handleSignup(e) {
 }
 
 // 更新用户界面
-function updateUserInterface(user) {
-    if (user) {
-        // 更新用户菜单
-        userMenu.innerHTML = `
-            <div class="user-dropdown">
-                <button class="user-btn">
-                    <img src="${user.avatar}" alt="${user.username}" class="user-avatar">
-                    <span>${user.username}</span>
-                </button>
-                <div class="dropdown-content">
-                    <a href="#profile"><i class="fas fa-user"></i> 个人资料</a>
-                    <a href="#settings"><i class="fas fa-cog"></i> 设置</a>
-                    <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> 退出登录</button>
-                </div>
-            </div>
-        `;
-
-        // 更新侧边栏用户信息
-        if (userProfile) {
-            const userInfo = userProfile.querySelector('.user-info');
-            const readingProgress = userProfile.querySelector('.reading-progress');
-            
-            userInfo.innerHTML = `
-                <img src="${user.avatar}" alt="${user.username}" class="avatar">
-                <h3 class="username">${user.username}</h3>
-                <p class="user-status">在线</p>
-            `;
-
-            if (readingProgress) {
-                const progressBar = readingProgress.querySelector('.progress');
-                const timeDisplay = readingProgress.querySelector('p');
-                if (progressBar && timeDisplay) {
-                    progressBar.style.width = `${Math.min((user.readingTime / 100) * 100, 100)}%`;
-                    timeDisplay.textContent = `已阅读 ${user.readingTime} 分钟`;
-                }
-            }
+function updateUserInterface(userData) {
+    // 更新头像
+    const avatars = document.querySelectorAll('.avatar');
+    avatars.forEach(avatar => {
+        if (userData.avatar) {
+            avatar.src = userData.avatar;
         }
-
-        // 添加退出登录事件监听
-        const logoutBtn = document.getElementById('logoutBtn');
+    });
+    
+    // 更新用户名
+    const usernames = document.querySelectorAll('.username');
+    usernames.forEach(username => {
+        username.textContent = userData.username || '未登录';
+    });
+    
+    // 更新用户状态
+    const userStatus = document.querySelector('.user-status');
+    if (userStatus) {
+        userStatus.textContent = '在线';
+        userStatus.classList.add('online');
+    }
+    
+    // 更新阅读进度
+    const progress = document.querySelector('.progress');
+    if (progress && userData.readingTime) {
+        const percentage = Math.min((userData.readingTime / 120) * 100, 100);
+        progress.style.width = `${percentage}%`;
+    }
+    
+    // 更新阅读时间显示
+    const readingTime = document.querySelector('.reading-progress p');
+    if (readingTime && userData.readingTime) {
+        readingTime.textContent = `已阅读 ${userData.readingTime} 分钟`;
+    }
+    
+    // 更新用户菜单
+    const userMenu = document.querySelector('.user-menu');
+    if (userMenu) {
+        userMenu.innerHTML = `
+            <span class="user-welcome">欢迎，${userData.username}</span>
+            <button class="logout-btn"><i class="fas fa-sign-out-alt"></i> 退出</button>
+        `;
+        
+        // 添加退出按钮事件监听
+        const logoutBtn = userMenu.querySelector('.logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', handleLogout);
         }
-    } else {
-        // 未登录状态
-        userMenu.innerHTML = `
-            <button class="login-btn"><i class="fas fa-user"></i> 登录</button>
-            <button class="signup-btn"><i class="fas fa-user-plus"></i> 注册</button>
-        `;
-
-        // 重新绑定登录注册按钮事件
-        const newLoginBtn = userMenu.querySelector('.login-btn');
-        const newSignupBtn = userMenu.querySelector('.signup-btn');
-        
-        newLoginBtn?.addEventListener('click', () => {
-            window.location.href = './login.html';
-        });
-
-        newSignupBtn?.addEventListener('click', () => {
-            window.location.href = './register.html';
-        });
     }
 }
 
@@ -300,6 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initCtaButton();
     initNotes();
+    initAvatarUpload(); // 初始化头像上传功能
 });
 
 // Mobile Menu Toggle
@@ -635,31 +660,6 @@ function initNotes() {
             console.log('过滤:', e.target.value);
         });
     });
-}
-
-// 更新用户界面
-function updateUserInterface() {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser) {
-        // 更新用户信息显示
-        const usernameElements = document.querySelectorAll('.username');
-        usernameElements.forEach(element => {
-            element.textContent = currentUser.username;
-        });
-
-        // 更新头像
-        const avatarElement = document.querySelector('.avatar');
-        if (avatarElement) {
-            avatarElement.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
-        }
-
-        // 更新用户状态
-        const userStatus = document.querySelector('.user-status');
-        if (userStatus) {
-            userStatus.textContent = '已登录';
-            userStatus.classList.add('online');
-        }
-    }
 }
 
 // 监听存储变化

@@ -533,9 +533,9 @@ body {
 }
 
 .auth-form {
-    background-color: var(--dark-gray);
+    background-color: var(--card-bg);
     padding: 2.5rem;
-    border-radius: 12px;
+    border-radius: 16px;
     width: 100%;
     max-width: 400px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -554,10 +554,11 @@ body {
 }
 
 .auth-form h2 {
-    color: var(--white);
+    color: var(--text-color);
     text-align: center;
     margin-bottom: 2rem;
     font-size: 1.8rem;
+    font-weight: 600;
 }
 
 .form-group {
@@ -567,72 +568,96 @@ body {
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--white);
+    color: var(--text-color);
     font-size: 0.9rem;
+    opacity: 0.8;
 }
 
 .form-group input {
     width: 100%;
     padding: 1rem;
-    border: 2px solid var(--light-gray);
+    border: 2px solid var(--border-color);
     border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--white);
+    background-color: var(--background-color);
+    color: var(--text-color);
     font-size: 1rem;
     transition: all 0.3s ease;
 }
 
 .form-group input:focus {
     outline: none;
-    border-color: var(--deep-red);
-    background-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.2);
 }
 
 .auth-form button {
     width: 100%;
     padding: 1rem;
-    background-color: var(--deep-red);
-    color: var(--white);
+    background-color: var(--primary-color);
+    color: var(--text-color);
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1.1rem;
-    font-weight: bold;
+    font-weight: 600;
     transition: all 0.3s ease;
     margin-bottom: 1rem;
 }
 
 .auth-form button:hover {
-    background-color: #a00000;
+    background-color: var(--hover-color);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
 }
 
 .auth-switch {
     text-align: center;
-    color: var(--white);
+    color: var(--text-color);
     margin-top: 1rem;
+    opacity: 0.8;
 }
 
 .auth-switch a {
-    color: var(--deep-red);
+    color: var(--primary-color);
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 600;
     margin-left: 0.5rem;
     transition: color 0.3s ease;
 }
 
 .auth-switch a:hover {
-    color: #ff0000;
+    color: var(--hover-color);
     text-decoration: underline;
 }
 
-/* 响应式设计 */
+/* 添加头像上传动画 */
+@keyframes avatarPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.avatar-preview:hover {
+    animation: avatarPulse 1s infinite;
+}
+
+/* 响应式调整 */
 @media (max-width: 768px) {
     .auth-form {
         margin: 1rem;
         padding: 1.5rem;
         max-width: calc(100% - 2rem);
+    }
+
+    .avatar-preview {
+        width: 100px;
+        height: 100px;
     }
 
     .auth-form h2 {
@@ -788,4 +813,55 @@ header {
 .user-menu button:hover {
     background-color: var(--white);
     color: var(--deep-red);
+}
+
+/* 头像上传样式 */
+.avatar-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.avatar-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--primary-color);
+    margin-bottom: 1rem;
+    position: relative;
+    background-color: var(--card-bg);
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.avatar-upload-btn {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.avatar-upload-btn:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-2px);
+}
+
+.avatar-upload-btn i {
+    font-size: 1.1rem;
 } 

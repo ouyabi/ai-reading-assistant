@@ -715,7 +715,6 @@ window.addEventListener('storage', (e) => {
 
 // 页面加载完成后初始化所有功能
 document.addEventListener('DOMContentLoaded', () => {
-    checkAuthAndShowLogin();
     initNavigation();
     initMobileMenu();
     initCtaButton();

@@ -344,7 +344,7 @@ function updateUserInterface(userData) {
 // 处理退出登录
 function handleLogout() {
     localStorage.removeItem('currentUser');
-    window.location.href = 'login.html';
+    window.location.href = '/login.html';
 }
 
 // 初始化用户状态
@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser) {
         // 如果未登录，跳转到登录页面
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
         return;
     }
     

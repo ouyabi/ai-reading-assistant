@@ -864,4 +864,148 @@ header {
 
 .avatar-upload-btn i {
     font-size: 1.1rem;
+}
+
+/* 认证页面样式 */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background-color);
+    padding: 20px;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 400px;
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin: auto;
+}
+
+.auth-form {
+    width: 100%;
+}
+
+.auth-form h2 {
+    text-align: center;
+    color: var(--text-color);
+    margin-bottom: 30px;
+    font-size: 24px;
+}
+
+.avatar-upload {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.avatar-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    overflow: hidden;
+    border: 3px solid var(--primary-color);
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-actions {
+    margin-top: 10px;
+}
+
+.avatar-upload-btn {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.avatar-upload-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.auth-form button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.auth-form button[type="submit"]:hover {
+    background-color: var(--primary-dark);
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-color);
+}
+
+.auth-switch a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 20px;
+    }
+    
+    .auth-form h2 {
+        font-size: 20px;
+    }
+    
+    .avatar-preview {
+        width: 80px;
+        height: 80px;
+    }
 } 

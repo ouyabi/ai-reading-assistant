@@ -231,7 +231,8 @@ async function handleLogin(e) {
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
-        window.location.href = 'index.html'; // 登录成功后跳转到主页
+        // 登录成功后跳转到主页
+        window.location.href = '/index.html';
     } catch (error) {
         alert(error.message);
     }
@@ -286,7 +287,8 @@ async function handleSignup(e) {
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
-        window.location.href = 'index.html'; // 注册成功后跳转到主页
+        // 注册成功后跳转到主页
+        window.location.href = '/index.html';
     } catch (error) {
         alert(error.message);
     }
@@ -323,11 +325,11 @@ document.addEventListener('DOMContentLoaded', initAuth);
 document.addEventListener('DOMContentLoaded', () => {
     initializeAvatarFunctions();
 
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('signup-form');
 
     loginForm?.addEventListener('submit', handleLogin);
-    registerForm?.addEventListener('submit', handleRegister);
+    registerForm?.addEventListener('submit', handleSignup);
 
     // 添加输入时的实时验证
     const forms = document.querySelectorAll('form');
@@ -342,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 检查用户登录状态
-    const currentUser = UserManager.getCurrentUser();
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const isAuthPage = window.location.pathname.includes('login.html') || 
                       window.location.pathname.includes('register.html');
 

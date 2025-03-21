@@ -8,24 +8,23 @@ const signupBtn = document.querySelector('.signup-btn');
 const userMenu = document.querySelector('.user-menu');
 const userProfile = document.querySelector('.user-profile');
 
-// 检查登录状态并显示登录模态框
-function checkAuthAndShowLogin() {
+// 登录状态管理
+let isAuthModalShown = false;
+
+// 检查登录状态
+function checkAuthStatus() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (!currentUser) {
-        // 只有在未登录状态下才显示登录模态框
-        showLoginModal();
-    } else {
-        // 如果已登录，更新用户界面
-        updateUserInterface(currentUser);
-    }
+    return currentUser !== null;
 }
 
 // 显示登录模态框
 function showLoginModal() {
-    // 检查是否已经存在登录模态框
-    if (document.querySelector('.auth-modal')) {
+    // 防止重复显示
+    if (isAuthModalShown || checkAuthStatus()) {
         return;
     }
+    
+    isAuthModalShown = true;
 
     const modalHtml = `
         <div class="auth-modal">
@@ -61,6 +60,7 @@ function showLoginModal() {
             </div>
         </div>
     `;
+    
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     
     const modal = document.querySelector('.auth-modal');
@@ -70,19 +70,23 @@ function showLoginModal() {
     switchToSignup.addEventListener('click', (e) => {
         e.preventDefault();
         modal.remove();
+        isAuthModalShown = false;
         showSignupModal();
     });
 
     // 处理登录表单提交
     document.getElementById('login-form').addEventListener('submit', handleLogin);
+    initAvatarUpload();
 }
 
 // 显示注册模态框
 function showSignupModal() {
-    // 检查是否已经存在注册模态框
-    if (document.querySelector('.auth-modal')) {
+    // 防止重复显示
+    if (isAuthModalShown || checkAuthStatus()) {
         return;
     }
+    
+    isAuthModalShown = true;
 
     const modalHtml = `
         <div class="auth-modal">
@@ -122,6 +126,7 @@ function showSignupModal() {
             </div>
         </div>
     `;
+    
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     
     const modal = document.querySelector('.auth-modal');
@@ -131,11 +136,13 @@ function showSignupModal() {
     switchToLogin.addEventListener('click', (e) => {
         e.preventDefault();
         modal.remove();
+        isAuthModalShown = false;
         showLoginModal();
     });
 
     // 处理注册表单提交
     document.getElementById('signup-form').addEventListener('submit', handleSignup);
+    initAvatarUpload();
 }
 
 // 处理头像上传
@@ -200,12 +207,13 @@ async function handleLogin(e) {
         const userData = {
             email: user.email,
             username: user.username,
-            avatar: avatar,
+            avatar: avatar || user.avatar,
             readingTime: user.readingTime || 0
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
-        document.querySelector('.auth-modal').remove();
+        document.querySelector('.auth-modal')?.remove();
+        isAuthModalShown = false;
         updateUserInterface(userData);
     } catch (error) {
         alert(error.message);
@@ -261,7 +269,8 @@ async function handleSignup(e) {
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
-        document.querySelector('.auth-modal').remove();
+        document.querySelector('.auth-modal')?.remove();
+        isAuthModalShown = false;
         updateUserInterface(userData);
     } catch (error) {
         alert(error.message);
@@ -342,8 +351,9 @@ function updateUserInterface(userData) {
 // 处理退出登录
 function handleLogout() {
     localStorage.removeItem('currentUser');
+    isAuthModalShown = false;
     updateUserInterface(null);
-    window.location.reload();
+    showLoginModal();
 }
 
 // 初始化用户状态

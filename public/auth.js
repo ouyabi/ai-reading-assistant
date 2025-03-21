@@ -48,20 +48,79 @@ function handleAvatarUpload(event) {
     }
 }
 
+// 头像相关功能
+function initializeAvatarFunctions() {
+    const uploadAvatarBtn = document.getElementById('uploadAvatar');
+    const randomAvatarBtn = document.getElementById('randomAvatar');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    
+    // 上传头像
+    uploadAvatarBtn?.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                avatarPreview.src = e.target.result;
+                // 这里可以添加将头像数据保存到服务器的代码
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 随机头像
+    randomAvatarBtn?.addEventListener('click', () => {
+        const seed = Math.random().toString(36).substring(7);
+        avatarPreview.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+    });
+}
+
 // 表单验证
 function validateForm(formId) {
     const form = document.getElementById(formId);
-    if (!form) return false;
+    const inputs = form.querySelectorAll('input');
+    let isValid = true;
 
-    const password = form.querySelector('input[type="password"]');
-    const confirmPassword = form.querySelector('#confirmPassword');
+    inputs.forEach(input => {
+        const group = input.parentElement;
+        group.classList.remove('error');
 
-    if (password && confirmPassword && password.value !== confirmPassword.value) {
-        alert('两次输入的密码不一致');
-        return false;
-    }
+        if (input.required && !input.value) {
+            group.classList.add('error');
+            isValid = false;
+        }
 
-    return true;
+        if (input.type === 'email' && input.value) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(input.value)) {
+                group.classList.add('error');
+                isValid = false;
+            }
+        }
+
+        if (input.type === 'password' && input.value) {
+            if (input.value.length < 6) {
+                group.classList.add('error');
+                isValid = false;
+            }
+        }
+
+        if (input.id === 'confirmPassword') {
+            const password = document.getElementById('password');
+            if (password && input.value !== password.value) {
+                group.classList.add('error');
+                isValid = false;
+            }
+        }
+    });
+
+    return isValid;
 }
 
 // 用户数据管理
@@ -167,39 +226,52 @@ async function mockApiCall(endpoint, data) {
     }
 }
 
-// 处理登录
-async function handleLogin(formData) {
-    try {
-        const response = await mockApiCall('login', formData);
-        if (response.success) {
-            UserManager.setCurrentUser(response.user);
-            alert(response.message);
-            window.location.href = './index.html';
-        } else {
-            alert(response.message);
-        }
-    } catch (error) {
-        alert('登录失败，请重试');
-    }
+// 登录表单处理
+function handleLogin(e) {
+    e.preventDefault();
+    if (!validateForm('loginForm')) return;
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    // 这里添加登录逻辑
+    console.log('登录数据:', data);
 }
 
-// 处理注册
-async function handleRegister(formData) {
-    try {
-        const response = await mockApiCall('register', formData);
-        if (response.success) {
-            alert(response.message);
-            window.location.href = './login.html';
-        } else {
-            alert(response.message);
-        }
-    } catch (error) {
-        alert('注册失败，请重试');
-    }
+// 注册表单处理
+function handleRegister(e) {
+    e.preventDefault();
+    if (!validateForm('registerForm')) return;
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    // 这里添加注册逻辑
+    console.log('注册数据:', data);
 }
 
-// 事件监听器设置
+// 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
+    initializeAvatarFunctions();
+
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    loginForm?.addEventListener('submit', handleLogin);
+    registerForm?.addEventListener('submit', handleRegister);
+
+    // 添加输入时的实时验证
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        const inputs = form.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                const group = input.parentElement;
+                group.classList.remove('error');
+            });
+        });
+    });
+
     // 检查用户登录状态
     const currentUser = UserManager.getCurrentUser();
     const isAuthPage = window.location.pathname.includes('login.html') || 
@@ -223,57 +295,21 @@ document.addEventListener('DOMContentLoaded', () => {
         passwordInput.addEventListener('input', (e) => checkPasswordStrength(e.target.value));
     }
 
-    // 随机头像按钮
-    const randomAvatarBtn = document.getElementById('randomAvatar');
-    if (randomAvatarBtn) {
-        randomAvatarBtn.addEventListener('click', generateRandomAvatar);
-    }
-
-    // 头像上传
-    const uploadAvatarBtn = document.getElementById('uploadAvatar');
-    if (uploadAvatarBtn) {
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = 'image/*';
-        fileInput.style.display = 'none';
-        document.body.appendChild(fileInput);
-
-        uploadAvatarBtn.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', handleAvatarUpload);
-    }
-
-    // 表单提交
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (validateForm('loginForm')) {
-                const formData = new FormData(loginForm);
-                const data = Object.fromEntries(formData.entries());
-                await handleLogin(data);
-            }
-        });
-    }
-
-    if (registerForm) {
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (validateForm('registerForm')) {
-                const formData = new FormData(registerForm);
-                const data = Object.fromEntries(formData.entries());
-                await handleRegister(data);
-            }
-        });
-    }
-
     // 处理所有返回首页的链接
     const homeLinks = document.querySelectorAll('a[href="/"]');
     homeLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             window.location.href = '/index.html';
+        });
+    });
+
+    // 社交登录按钮处理
+    document.querySelectorAll('.social-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const platform = e.currentTarget.querySelector('i').classList[1].split('-')[1];
+            console.log(`点击了${platform}登录`);
+            // 这里添加社交登录逻辑
         });
     });
 }); 

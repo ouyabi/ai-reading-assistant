@@ -1,15 +1,16 @@
 /* 登录和注册页面的全局样式 */
 :root {
-    --primary-color: #4a90e2;
-    --secondary-color: #2c3e50;
-    --background-color: #f5f6fa;
-    --text-color: #333;
-    --border-color: #ddd;
-    --hover-color: #357abd;
+    --primary-color: #8B0000;  /* 深红色 */
+    --secondary-color: #333333; /* 深灰色 */
+    --background-color: #1a1a1a; /* 更深的灰色背景 */
+    --text-color: #ffffff;
+    --border-color: #444444;
+    --hover-color: #a00000;
     --success-color: #27ae60;
-    --error-color: #e74c3c;
-    --gradient-start: #4a90e2;
-    --gradient-end: #357abd;
+    --error-color: #ff4444;
+    --gradient-start: #8B0000;
+    --gradient-end: #4a0000;
+    --input-bg: #2a2a2a;
 }
 
 body {
@@ -17,22 +18,24 @@ body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    background: linear-gradient(135deg, var(--secondary-color), var(--background-color));
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--text-color);
 }
 
 .auth-container {
-    background: white;
+    background: rgba(26, 26, 26, 0.95);
     border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     width: 100%;
     max-width: 400px;
     padding: 2rem;
     margin: 1rem;
     position: relative;
     overflow: hidden;
+    border: 1px solid var(--border-color);
 }
 
 .auth-header {
@@ -41,13 +44,13 @@ body {
 }
 
 .auth-header h1 {
-    color: var(--secondary-color);
+    color: var(--text-color);
     font-size: 2rem;
     margin-bottom: 0.5rem;
 }
 
 .auth-header p {
-    color: #666;
+    color: #888;
     font-size: 1rem;
     margin: 0;
 }
@@ -64,7 +67,7 @@ body {
 
 .form-group label {
     display: block;
-    color: var(--secondary-color);
+    color: var(--text-color);
     margin-bottom: 0.5rem;
     font-weight: 500;
 }
@@ -76,12 +79,13 @@ body {
     border-radius: 10px;
     font-size: 1rem;
     transition: all 0.3s ease;
-    background: #f8f9fa;
+    background: var(--input-bg);
+    color: var(--text-color);
 }
 
 .form-group input:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.2);
     outline: none;
 }
 
@@ -89,7 +93,7 @@ body {
     position: absolute;
     right: 1rem;
     top: 2.3rem;
-    color: #666;
+    color: #888;
 }
 
 .auth-button {
@@ -107,7 +111,7 @@ body {
 
 .auth-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+    box-shadow: 0 5px 15px rgba(139, 0, 0, 0.3);
 }
 
 .auth-links {
@@ -133,7 +137,7 @@ body {
     align-items: center;
     text-align: center;
     margin: 1.5rem 0;
-    color: #666;
+    color: #888;
 }
 
 .divider::before,
@@ -163,14 +167,87 @@ body {
     height: 40px;
     border-radius: 50%;
     border: 2px solid var(--border-color);
-    color: #666;
+    color: #888;
     transition: all 0.3s ease;
     cursor: pointer;
+    background: var(--input-bg);
 }
 
 .social-button:hover {
-    background: var(--background-color);
-    color: var(--primary-color);
+    background: var(--primary-color);
+    color: var(--text-color);
+    border-color: var(--primary-color);
+}
+
+/* 头像上传样式 */
+.avatar-upload {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.avatar-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    overflow: hidden;
+    border: 3px solid var(--primary-color);
+    position: relative;
+    background: var(--input-bg);
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-preview:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(139, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.avatar-overlay i {
+    color: white;
+    font-size: 2rem;
+}
+
+.avatar-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.avatar-button {
+    background: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.avatar-button:hover {
+    background: var(--primary-color);
     border-color: var(--primary-color);
 }
 

@@ -284,16 +284,9 @@ function updateUserInterface(userData) {
         const userMenu = document.querySelector('.user-menu');
         if (userMenu) {
             userMenu.innerHTML = `
-                <button class="login-btn"><i class="fas fa-user"></i> 登录</button>
-                <button class="signup-btn"><i class="fas fa-user-plus"></i> 注册</button>
+                <a href="login.html" class="login-btn"><i class="fas fa-user"></i> 登录</a>
+                <a href="register.html" class="signup-btn"><i class="fas fa-user-plus"></i> 注册</a>
             `;
-            
-            // 重新绑定登录注册按钮事件
-            const loginBtn = userMenu.querySelector('.login-btn');
-            const signupBtn = userMenu.querySelector('.signup-btn');
-            
-            loginBtn?.addEventListener('click', showLoginModal);
-            signupBtn?.addEventListener('click', showSignupModal);
         }
         return;
     }
@@ -351,9 +344,7 @@ function updateUserInterface(userData) {
 // 处理退出登录
 function handleLogout() {
     localStorage.removeItem('currentUser');
-    isAuthModalShown = false;
-    updateUserInterface(null);
-    showLoginModal();
+    window.location.href = 'login.html';
 }
 
 // 初始化用户状态
@@ -393,19 +384,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // 检查登录状态
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser) {
-        // 只有在未登录状态下才显示登录模态框
-        showLoginModal();
-    } else {
-        // 如果已登录，更新用户界面
-        updateUserInterface(currentUser);
+        // 如果未登录，跳转到登录页面
+        window.location.href = 'login.html';
+        return;
     }
+    
+    // 如果已登录，更新用户界面
+    updateUserInterface(currentUser);
     
     initializeUserState();
     initNavigation();
     initMobileMenu();
     initCtaButton();
     initNotes();
-    initAvatarUpload(); // 初始化头像上传功能
 });
 
 // Mobile Menu Toggle

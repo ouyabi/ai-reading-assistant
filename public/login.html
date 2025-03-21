@@ -4,85 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录 - AI伴读</title>
-    <link rel="stylesheet" href="auth.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-<body>
+<body class="auth-page">
     <div class="auth-container">
-        <div class="auth-header">
-            <h1>欢迎回来</h1>
-            <p>登录您的AI伴读账号</p>
-        </div>
-
-        <div class="avatar-upload">
-            <div class="avatar-preview">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="用户头像" id="avatarPreview">
-                <div class="avatar-overlay">
-                    <i class="fas fa-camera"></i>
+        <div class="auth-form">
+            <div class="avatar-upload">
+                <div class="avatar-preview">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="用户头像" id="avatar-preview">
+                </div>
+                <div class="avatar-actions">
+                    <label for="avatar-input" class="avatar-upload-btn">
+                        <i class="fas fa-camera"></i> 更换头像
+                    </label>
+                    <input type="file" id="avatar-input" accept="image/*" style="display: none;">
                 </div>
             </div>
-            <div class="avatar-buttons">
-                <button type="button" class="avatar-button" id="uploadAvatar">
-                    <i class="fas fa-upload"></i>
-                    上传头像
-                </button>
-                <button type="button" class="avatar-button" id="randomAvatar">
-                    <i class="fas fa-random"></i>
-                    随机头像
-                </button>
-            </div>
-        </div>
-
-        <form class="auth-form" id="loginForm">
-            <div class="form-group">
-                <label for="username">用户名</label>
-                <input type="text" id="username" name="username" required>
-                <i class="fas fa-user"></i>
-                <div class="error-message">请输入用户名</div>
-            </div>
-
-            <div class="form-group">
-                <label for="email">邮箱地址</label>
-                <input type="email" id="email" name="email" required>
-                <i class="fas fa-envelope"></i>
-                <div class="error-message">请输入有效的邮箱地址</div>
-            </div>
-
-            <div class="form-group">
-                <label for="password">密码</label>
-                <input type="password" id="password" name="password" required>
-                <i class="fas fa-lock"></i>
-                <div class="error-message">密码不能为空</div>
-            </div>
-
-            <button type="submit" class="auth-button">
-                登录
-                <i class="fas fa-arrow-right"></i>
-            </button>
-        </form>
-
-        <div class="divider">
-            <span>或</span>
-        </div>
-
-        <div class="social-login">
-            <button class="social-button">
-                <i class="fab fa-weixin"></i>
-            </button>
-            <button class="social-button">
-                <i class="fab fa-qq"></i>
-            </button>
-            <button class="social-button">
-                <i class="fab fa-weibo"></i>
-            </button>
-        </div>
-
-        <div class="auth-links">
-            <a href="#" id="forgotPassword">忘记密码？</a>
-            <a href="register.html">注册新账号</a>
+            <h2>登录</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-username">用户名</label>
+                    <input type="text" id="login-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-email">邮箱</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">密码</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit">登录</button>
+                <p class="auth-switch">还没有账号？<a href="register.html">立即注册</a></p>
+            </form>
         </div>
     </div>
-
     <script src="auth.js"></script>
 </body>
 </html> 

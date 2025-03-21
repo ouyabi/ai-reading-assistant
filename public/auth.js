@@ -34,17 +34,17 @@ function generateRandomAvatar() {
 }
 
 // 头像上传处理
-function handleAvatarUpload(event) {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
+function handleAvatarUpload(input, previewId) {
+    if (input.files && input.files[0]) {
         const reader = new FileReader();
+        const preview = document.getElementById(previewId);
+        
         reader.onload = function(e) {
-            const avatarPreview = document.getElementById('avatarPreview');
-            if (avatarPreview) {
-                avatarPreview.src = e.target.result;
-            }
-        };
-        reader.readAsDataURL(file);
+            preview.src = e.target.result;
+            localStorage.setItem('tempAvatar', e.target.result);
+        }
+        
+        reader.readAsDataURL(input.files[0]);
     }
 }
 
@@ -209,22 +209,29 @@ function showSignupModal() {
 // 处理登录表单提交
 async function handleLogin(e) {
     e.preventDefault();
+    const username = document.getElementById('login-username').value;
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
+    const avatar = document.getElementById('avatar-preview').src;
 
     try {
-        const user = users.get(email);
-        if (!user || user.password !== password) {
-            throw new Error('邮箱或密码错误');
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.email === email && u.password === password && u.username === username);
+        
+        if (!user) {
+            throw new Error('用户名、邮箱或密码错误');
         }
 
-        currentUser = {
+        // 保存登录状态
+        const userData = {
             email: user.email,
-            username: user.username
+            username: user.username,
+            avatar: avatar || user.avatar,
+            readingTime: user.readingTime || 0
         };
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        updateUIForAuthenticatedUser();
-        document.querySelector('.auth-modal').remove();
+        
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        window.location.href = 'index.html'; // 登录成功后跳转到主页
     } catch (error) {
         alert(error.message);
     }
@@ -236,25 +243,50 @@ async function handleSignup(e) {
     const username = document.getElementById('signup-username').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
+    const avatar = document.getElementById('signup-avatar-preview').src;
 
     try {
-        if (users.has(email)) {
+        // 验证密码
+        if (password !== confirmPassword) {
+            throw new Error('两次输入的密码不一致');
+        }
+
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // 检查用户名是否已存在
+        if (users.some(u => u.username === username)) {
+            throw new Error('该用户名已被使用');
+        }
+        
+        // 检查邮箱是否已存在
+        if (users.some(u => u.email === email)) {
             throw new Error('该邮箱已被注册');
         }
 
-        users.set(email, {
+        // 创建新用户
+        const newUser = {
             username,
             email,
-            password
-        });
-
-        currentUser = {
-            email,
-            username
+            password,
+            avatar,
+            registerDate: new Date().toISOString(),
+            readingTime: 0
         };
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        updateUIForAuthenticatedUser();
-        document.querySelector('.auth-modal').remove();
+        
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+
+        // 自动登录
+        const userData = {
+            email: newUser.email,
+            username: newUser.username,
+            avatar: newUser.avatar,
+            readingTime: 0
+        };
+        
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        window.location.href = 'index.html'; // 注册成功后跳转到主页
     } catch (error) {
         alert(error.message);
     }

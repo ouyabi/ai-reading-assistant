@@ -280,14 +280,8 @@ async function handleSignup(e) {
 // 更新用户界面
 function updateUserInterface(userData) {
     if (!userData) {
-        // 未登录状态
-        const userMenu = document.querySelector('.user-menu');
-        if (userMenu) {
-            userMenu.innerHTML = `
-                <a href="login.html" class="login-btn"><i class="fas fa-user"></i> 登录</a>
-                <a href="register.html" class="signup-btn"><i class="fas fa-user-plus"></i> 注册</a>
-            `;
-        }
+        // 未登录状态，跳转到登录页面
+        window.location.href = '/login.html';
         return;
     }
 
@@ -392,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 如果已登录，更新用户界面
     updateUserInterface(currentUser);
     
+    // 初始化其他功能
     initializeUserState();
     initNavigation();
     initMobileMenu();

@@ -12,7 +12,10 @@ dotenv.config();
 const app = express();
 
 // 安全中间件
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false
+}));
 
 // 速率限制
 const limiter = rateLimit({
@@ -23,17 +26,29 @@ app.use('/api', limiter);
 
 // CORS 配置
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN : '*',
+    origin: '*',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+
+// 静态文件服务
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 根路由
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// 登录页面路由
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// 注册页面路由
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'register.html'));
 });
 
 // 存储用户会话

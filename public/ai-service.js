@@ -1,33 +1,9 @@
 // Deepseek API配置
 const DEEPSEEK_API_ENDPOINT = 'https://api.deepseek.com/v1';
-let apiKey = '';
-
-// 初始化API密钥
-function initApiKey() {
-    apiKey = localStorage.getItem('deepseek_api_key');
-    if (!apiKey) {
-        promptForApiKey();
-    }
-}
-
-// 提示用户输入API密钥
-function promptForApiKey() {
-    const key = prompt('请输入您的Deepseek API密钥：');
-    if (key) {
-        apiKey = key;
-        localStorage.setItem('deepseek_api_key', key);
-    }
-}
+const DEEPSEEK_API_KEY = 'sk-65a646d3cad34d61ba02807e428b8999';
 
 // 调用Deepseek R1模型
 async function callDeepseekR1(prompt, options = {}) {
-    if (!apiKey) {
-        promptForApiKey();
-        if (!apiKey) {
-            throw new Error('需要API密钥才能继续');
-        }
-    }
-
     const defaultOptions = {
         model: 'deepseek-r1',
         temperature: 0.7,
@@ -51,7 +27,7 @@ async function callDeepseekR1(prompt, options = {}) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
             },
             body: JSON.stringify(requestOptions)
         });
@@ -111,9 +87,10 @@ async function handleUserInput(input) {
 function initChat() {
     const chatForm = document.querySelector('.chat-input');
     const textarea = chatForm.querySelector('textarea');
+    const sendButton = chatForm.querySelector('.send-btn');
 
-    chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // 发送按钮点击事件
+    sendButton.addEventListener('click', async () => {
         const input = textarea.value.trim();
         if (!input) return;
 
@@ -132,10 +109,31 @@ function initChat() {
             await handleUserInput(input);
         }
     });
+
+    // 处理文件上传
+    const uploadButton = chatForm.querySelector('.upload-btn');
+    uploadButton.addEventListener('click', () => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.txt,.pdf,.doc,.docx';
+        
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                textarea.value = `请分析以下文本内容：\n\n${text}`;
+            } catch (error) {
+                alert('文件读取失败，请重试');
+            }
+        });
+
+        fileInput.click();
+    });
 }
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    initApiKey();
     initChat();
 }); 

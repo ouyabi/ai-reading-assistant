@@ -367,4 +367,128 @@ const themes = {
     }
 };
 
-// 后续可以添加主题切换功能 
+// 后续可以添加主题切换功能
+
+// 页面导航功能
+function initNavigation() {
+    const navLinks = document.querySelectorAll('.main-nav a');
+    const sections = document.querySelectorAll('.section');
+
+    // 处理导航点击
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href').slice(1);
+            
+            // 更新活动导航项
+            navLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+            
+            // 显示目标部分
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === targetId) {
+                    section.classList.add('active');
+                }
+            });
+        });
+    });
+}
+
+// 移动端菜单功能
+function initMobileMenu() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const mainNav = document.querySelector('.main-nav');
+
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+        mainNav.classList.toggle('active');
+    });
+}
+
+// 处理开始阅读按钮
+function initCtaButton() {
+    const ctaButton = document.querySelector('.cta-button');
+    if (ctaButton) {
+        ctaButton.addEventListener('click', () => {
+            // 跳转到AI助手部分
+            document.querySelector('a[href="#ai-assistant"]').click();
+        });
+    }
+}
+
+// 处理笔记功能
+function initNotes() {
+    const newNoteBtn = document.querySelector('.new-note-btn');
+    const searchInput = document.querySelector('.search-box input');
+    const filterSelects = document.querySelectorAll('.filter-select');
+
+    if (newNoteBtn) {
+        newNoteBtn.addEventListener('click', () => {
+            // 检查用户是否登录
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) {
+                alert('请先登录后再创建笔记');
+                document.querySelector('.login-btn').click();
+                return;
+            }
+            // TODO: 实现新建笔记功能
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            // TODO: 实现笔记搜索功能
+            console.log('搜索:', e.target.value);
+        });
+    }
+
+    filterSelects.forEach(select => {
+        select.addEventListener('change', (e) => {
+            // TODO: 实现笔记过滤功能
+            console.log('过滤:', e.target.value);
+        });
+    });
+}
+
+// 更新用户界面
+function updateUserInterface() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (currentUser) {
+        // 更新用户信息显示
+        const usernameElements = document.querySelectorAll('.username');
+        usernameElements.forEach(element => {
+            element.textContent = currentUser.username;
+        });
+
+        // 更新头像
+        const avatarElement = document.querySelector('.avatar');
+        if (avatarElement) {
+            avatarElement.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
+        }
+
+        // 更新用户状态
+        const userStatus = document.querySelector('.user-status');
+        if (userStatus) {
+            userStatus.textContent = '已登录';
+            userStatus.classList.add('online');
+        }
+    }
+}
+
+// 监听存储变化
+window.addEventListener('storage', (e) => {
+    if (e.key === 'currentUser') {
+        updateUserInterface();
+    }
+});
+
+// 页面加载完成后初始化所有功能
+document.addEventListener('DOMContentLoaded', () => {
+    initNavigation();
+    initMobileMenu();
+    initCtaButton();
+    initNotes();
+    updateUserInterface();
+}); 
